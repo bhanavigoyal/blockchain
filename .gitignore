@@ -1,0 +1,28 @@
+# Ignore all files without an extension
+*
+!/**/
+!*.*
+
+# Other common entries
+# Ignore compiled binary files
+*.exe             # Windows executables
+*.exe~            # Backup of Windows executables
+*.out             # Output files
+*.o               # Object files
+
+# Ignore Go specific files
+*.test            # Test binary
+*.so              # Shared object files
+
+# Ignore vendor directory
+/vendor/
+
+# Ignore IDE/editor specific files
+*.idea/          # IntelliJ IDEA
+*.vscode/        # Visual Studio Code
+.DS_Store        # macOS system files
+*.swp            # Swap files for vim
+
+# Ignore logs and temporary files
+*.log
+*.tmp
