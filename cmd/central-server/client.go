@@ -1,4 +1,4 @@
-package main
+package centralserver
 
 import (
 	"github.com/gorilla/websocket"

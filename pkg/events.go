@@ -1,22 +1,28 @@
-package main
+package pkg
 
-import "encoding/json"
+import (
+	"encoding/json"
 
+	"github.com/bhanavigoyal/blockchain/cmd/central-server"
+)
 type Event struct{
 	Type string `json:"type"`
 	Payload json.RawMessage `json:"payload"`
 }
 
-var (
+type EventHandler func(event Event, client *centralserver.Client) error
+
+const (
 	EventNewTransaction = "new_transaction"
-	EventMinedNewBlock = "mined_new_block"
+	EventMinedNewBlock = "new_mined_block"
 )
 
 type NewTransactionPayload struct{
-	Message string `json:"message"`
+	Transaction string `json:"transaction"`
 	From string `json:"from"`
 }
 
-type MinedNewBlockPayload struct{
-	
+type NewMinedBlockPayload struct{
+	Block string `json:"block"`
+	From string `json:"from"`
 }
