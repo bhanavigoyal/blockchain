@@ -2,8 +2,6 @@ package pkg
 
 import (
 	"encoding/json"
-
-	centralserver "github.com/bhanavigoyal/blockchain/cmd/central-server"
 )
 
 type Event struct {
@@ -11,19 +9,17 @@ type Event struct {
 	Payload json.RawMessage `json:"payload"`
 }
 
-type EventHandler func(event Event, client *centralserver.Client) error
-
 const (
 	EventNewTransaction = "new_transaction"
 	EventNewMinedBlock  = "new_mined_block"
 )
 
 type NewTransactionPayload struct {
-	Transaction string `json:"transaction"`
-	From        string `json:"from"`
+	Transaction Transaction `json:"transaction"`
+	From        string      `json:"from"`
 }
 
 type NewMinedBlockPayload struct {
-	Block string `json:"block"`
+	Block Block  `json:"block"`
 	From  string `json:"from"`
 }

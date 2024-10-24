@@ -7,7 +7,7 @@ import (
 	"github.com/bhanavigoyal/blockchain/pkg"
 )
 
-type Transaction struct{
+type Transaction struct {
 	pkg.Transaction
 }
 

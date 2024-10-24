@@ -14,6 +14,6 @@ type Transaction struct {
 	TxID            []byte
 }
 
-type TransactionManager interface{
+type TransactionManager interface {
 	ComputeTransactionHash() []byte
 }

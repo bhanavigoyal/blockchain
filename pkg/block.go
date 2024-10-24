@@ -17,7 +17,7 @@ type Block struct {
 	Transactions []Transaction
 }
 
-type BlockManager interface{
+type BlockManager interface {
 	ComputeBlockHash() []byte
 	AddTransaction(tx Transaction)
 }

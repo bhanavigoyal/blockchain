@@ -22,7 +22,6 @@ func (b *BlockMiner) ComputeBlockHash() []byte {
 	return secondHash[:]
 }
 
-
 func (b *BlockMiner) AddTransaction(tx pkg.Transaction) {
 	b.Transactions = append(b.Transactions, tx)
 }
