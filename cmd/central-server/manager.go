@@ -38,8 +38,8 @@ func NewManager() *Manager {
 }
 
 func (m *Manager) setupEventHandlers() {
-	m.handlers[pkg.EventNewTransaction] = NewTransactionEvent
-	m.handlers[pkg.EventNewMinedBlock] = NewMinedBlockHandler
+	m.handlers[pkg.EventNewTransaction] = NewTransactionHandler
+	m.handlers[pkg.EventSendNewMinedBlock] = NewMinedBlockHandler
 }
 
 func (m *Manager) routeEvent(event pkg.Event, client *Client) error {
@@ -60,6 +60,7 @@ func (m *Manager) addClient(client *Client) {
 	m.clients[client] = true
 }
 
+// add the handling of disconnection
 func (m *Manager) removeClient(client *Client) {
 	m.Lock()
 	defer m.Unlock()

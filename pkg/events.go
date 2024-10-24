@@ -11,7 +11,8 @@ type Event struct {
 
 const (
 	EventNewTransaction = "new_transaction"
-	EventNewMinedBlock  = "new_mined_block"
+	EventSendNewMinedBlock  = "send_mined_block"
+	EventReceiveNewMinedBlock = "receive_mined_block"
 )
 
 type NewTransactionPayload struct {
