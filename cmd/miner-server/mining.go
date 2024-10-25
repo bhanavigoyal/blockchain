@@ -15,12 +15,14 @@ type EventHandler func(event pkg.Event) error
 type Miner struct {
 	conn     *websocket.Conn
 	handlers map[string]EventHandler
+	mempool  *Mempool
 }
 
-func NewMiner(conn *websocket.Conn) *Miner {
+func NewMiner(conn *websocket.Conn, mempool *Mempool) *Miner {
 	m := &Miner{
 		conn:     conn,
 		handlers: make(map[string]EventHandler),
+		mempool: mempool,
 	}
 
 	m.setupEventHandlers()

@@ -12,5 +12,10 @@ func IsValid(t *pkg.Transaction) error {
 	if !secp256k1.VerifySignature(t.PublicKey, z, t.Signature) {
 		return fmt.Errorf("failed to verify secp256k1 signature")
 	}
+
+	// txid := t.ComputeTransactionHash()
+	// t.TxID :=txid
+
+	//add mempool logic if a tx with txid is present don't add it to mempool else add
 	return nil
 }

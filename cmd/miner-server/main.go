@@ -14,8 +14,9 @@ func main() {
 	}
 	defer conn.Close()
 
-	m := NewMiner(conn)
+	mempool := NewMempool()
+	miner := NewMiner(conn, mempool)
 
-	m.Listen()
+	miner.Listen()
 
 }

@@ -17,6 +17,7 @@ func NewTransactionHandler(event pkg.Event) error {
 		return fmt.Errorf("invalid Transaction: %v", err)
 	}
 
+
 	//add to mempool
 	//add to block and solve hash
 	return nil
