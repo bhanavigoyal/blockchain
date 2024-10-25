@@ -4,16 +4,17 @@ import (
 	"time"
 )
 
-type Transaction struct {
-	Message         string
-	PublicKey       []byte
-	ReceieveAddress []byte
-	Amount          string
-	Signature       []byte
-	Timestamp       time.Time
-	TxID            []byte
+type Signature struct {
+	R []byte
+	S []byte
 }
 
-type TransactionManager interface {
-	ComputeTransactionHash() []byte
+type Transaction struct {
+	Message        string
+	PublicKey      []byte
+	ReceiveAddress []byte
+	Amount         string
+	Signature      []byte    //change the format -> [R|S]
+	Timestamp      time.Time //change the data type
+	TxID           []byte
 }

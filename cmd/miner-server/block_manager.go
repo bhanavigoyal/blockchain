@@ -22,6 +22,12 @@ func (b *BlockMiner) ComputeBlockHash() []byte {
 	return secondHash[:]
 }
 
+func (b *BlockMiner) IsValidTransaction(tx *pkg.Transaction) {
+	if err := IsValid(tx); err != nil {
+
+	}
+}
+
 func (b *BlockMiner) AddTransaction(tx pkg.Transaction) {
 	b.Transactions = append(b.Transactions, tx)
 }
