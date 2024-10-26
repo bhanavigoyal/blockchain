@@ -22,7 +22,7 @@ func NewMiner(conn *websocket.Conn, mempool *Mempool) *Miner {
 	m := &Miner{
 		conn:     conn,
 		handlers: make(map[string]EventHandler),
-		mempool: mempool,
+		mempool:  mempool,
 	}
 
 	m.setupEventHandlers()
@@ -30,9 +30,9 @@ func NewMiner(conn *websocket.Conn, mempool *Mempool) *Miner {
 }
 
 func (m *Miner) setupEventHandlers() {
-	m.handlers[pkg.EventNewTransaction] = NewTransactionHandler
-	m.handlers[pkg.EventSendNewMinedBlock] = SendMinedBlockHandler
-	m.handlers[pkg.EventReceiveNewMinedBlock] = ReceiveMinedBlockHandler
+	m.handlers[pkg.EventNewTransaction] = m.NewTransactionHandler
+	m.handlers[pkg.EventSendNewMinedBlock] = m.SendMinedBlockHandler
+	m.handlers[pkg.EventReceiveNewMinedBlock] = m.ReceiveMinedBlockHandler
 }
 
 func (m *Miner) routeHandler(event pkg.Event) error {

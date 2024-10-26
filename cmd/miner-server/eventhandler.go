@@ -7,7 +7,7 @@ import (
 	"github.com/bhanavigoyal/blockchain/pkg"
 )
 
-func NewTransactionHandler(event pkg.Event) error {
+func (m *Miner) NewTransactionHandler(event pkg.Event) error {
 	var newTransaction pkg.NewTransactionPayload
 	if err := json.Unmarshal(event.Payload, &newTransaction); err != nil {
 		return fmt.Errorf("bad payload request: %v", err)
@@ -17,16 +17,19 @@ func NewTransactionHandler(event pkg.Event) error {
 		return fmt.Errorf("invalid Transaction: %v", err)
 	}
 
+	if err := m.mempool.CheckDoubleSpend(&newTransaction.Transaction); err != nil {
+		return fmt.Errorf("double txn: %v", err)
+	}
 
-	//add to mempool
-	//add to block and solve hash
+	m.mempool.AddTransaction(&newTransaction.Transaction)
+
 	return nil
 }
 
-func ReceiveMinedBlockHandler(event pkg.Event) error {
+func (m *Miner) ReceiveMinedBlockHandler(event pkg.Event) error {
 	return nil
 }
 
-func SendMinedBlockHandler(event pkg.Event) error {
+func (m *Miner) SendMinedBlockHandler(event pkg.Event) error {
 	return nil
 }

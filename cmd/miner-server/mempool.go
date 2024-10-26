@@ -1,6 +1,7 @@
 package minerserver
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/bhanavigoyal/blockchain/pkg"
@@ -11,7 +12,7 @@ type Mempool struct {
 	sync.Mutex
 }
 
-func NewMempool() *Mempool{
+func NewMempool() *Mempool {
 	return &Mempool{
 		transactions: make(map[string]*pkg.Transaction),
 	}
@@ -23,6 +24,14 @@ func (m *Mempool) AddTransaction(tx *pkg.Transaction) {
 
 	txId := string(tx.TxID)
 	m.transactions[txId] = tx
+}
+
+func (m *Mempool) CheckDoubleSpend(tx *pkg.Transaction) error {
+	if _, ok := m.transactions[string(tx.TxID)]; ok {
+		return fmt.Errorf("transaction with %v already present", tx.TxID)
+	} else {
+		return nil
+	}
 }
 
 //remove function

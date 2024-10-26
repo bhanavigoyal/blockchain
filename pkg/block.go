@@ -16,8 +16,3 @@ type Block struct {
 	Header       BlockHeader
 	Transactions []Transaction
 }
-
-type BlockManager interface {
-	ComputeBlockHash() []byte
-	AddTransaction(tx Transaction)
-}
