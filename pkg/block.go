@@ -9,7 +9,7 @@ type BlockHeader struct {
 	PreviousBlockHash []byte
 	CurrBlockHash     []byte
 	Nonce             int
-	Difficulty        int
+	Target            []byte
 }
 
 type Block struct {
