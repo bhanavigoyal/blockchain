@@ -1,60 +1,41 @@
 package minerserver
 
 import (
-	"errors"
-	"log"
+	"time"
 
-	"github.com/bhanavigoyal/blockchain/pkg"
-	"github.com/gorilla/websocket"
+	pkg "github.com/bhanavigoyal/blockchain/shared"
 )
 
-var ErrEventNotSupported = errors.New("this event type is not supported")
+func (m *Miner) GenerateNewBlock() {
+	newblock := m.blockchain.CreateNewBlock()
 
-type EventHandler func(event pkg.Event) error
+	addedTxns := make(map[string]bool)
 
-type Miner struct {
-	conn     *websocket.Conn
-	handlers map[string]EventHandler
-	mempool  *Mempool
-}
+	startTime := time.Now()
 
-func NewMiner(conn *websocket.Conn, mempool *Mempool) *Miner {
-	m := &Miner{
-		conn:     conn,
-		handlers: make(map[string]EventHandler),
-		mempool:  mempool,
-	}
+	for len(newblock.Transactions) < 5 {
+		for txId, tx := range m.mempool.transactions {
+			if addedTxns[txId] {
+				continue
+			}
 
-	m.setupEventHandlers()
-	return m
-}
+			newblock.Transactions = append(newblock.Transactions, *tx)
+			addedTxns[txId] = true
 
-func (m *Miner) setupEventHandlers() {
-	m.handlers[pkg.EventNewTransaction] = m.NewTransactionHandler
-	m.handlers[pkg.EventSendNewMinedBlock] = m.SendMinedBlockHandler
-	m.handlers[pkg.EventReceiveNewMinedBlock] = m.ReceiveMinedBlockHandler
-}
-
-func (m *Miner) routeHandler(event pkg.Event) error {
-	if handler, ok := m.handlers[event.Type]; ok {
-		return handler(event)
-	}
-
-	return ErrEventNotSupported
-}
-
-func (m *Miner) Listen() {
-	for {
-		var event pkg.Event
-		err := m.conn.ReadJSON(&event)
-		if err != nil {
-			log.Println("Error readiing Event: ", err)
-			return
+			if len(newblock.Transactions) >= 5 {
+				break
+			}
 		}
 
-		err = m.routeHandler(event)
-		if err != nil {
-			log.Println("Error handling the event", err)
+		if time.Since(startTime) > time.Minute {
+			break
 		}
+
+		time.Sleep(10 * time.Second)
 	}
+
+	if len(newblock.Transactions) > 0 {
+		pkg.NewBlock(&newblock.Header, newblock.Transactions)
+	}
+
 }

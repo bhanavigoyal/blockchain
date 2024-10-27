@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/bhanavigoyal/blockchain/pkg"
+	pkg "github.com/bhanavigoyal/blockchain/shared"
 )
 
 type Mempool struct {
@@ -23,7 +23,9 @@ func (m *Mempool) AddTransaction(tx *pkg.Transaction) {
 	defer m.Unlock()
 
 	txId := string(tx.TxID)
+	//check if already present in mempool
 	m.transactions[txId] = tx
+
 }
 
 func (m *Mempool) CheckDoubleSpend(tx *pkg.Transaction) error {
@@ -35,3 +37,7 @@ func (m *Mempool) CheckDoubleSpend(tx *pkg.Transaction) error {
 }
 
 //remove function
+
+// func (m *Mempool) triggerGather(){
+//
+// }

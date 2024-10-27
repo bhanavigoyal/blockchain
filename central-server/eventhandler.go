@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/bhanavigoyal/blockchain/pkg"
+	"github.com/bhanavigoyal/blockchain/shared"
 )
 
 func NewTransactionHandler(event pkg.Event, client *Client) error {

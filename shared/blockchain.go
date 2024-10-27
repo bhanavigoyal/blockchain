@@ -30,13 +30,13 @@ func (s BlockchainStatus) String() string {
 	}
 }
 
-// make a function which combines txns for data and after a height calls addnewblock
-// the function can be like ki if len <=10 then add txn and after that call newblock
-func (chain *Blockchain) CreateNewBlock(data *Transaction) {
+// called after new block is mined and added to the blockchain
+func (chain *Blockchain) CreateNewBlock() *Block {
 	prevBlock := chain.Head.Header.CurrBlockHash
 	newBlockHeader := NewBlockHeader(prevBlock)
-	newBlock := NewBlock(newBlockHeader, data)
-	newBlock.Header.MineBlock()
+	newBlock := NewBlockTemplate(newBlockHeader)
+	return newBlock
+
 }
 
 // func ValidBlock(){}

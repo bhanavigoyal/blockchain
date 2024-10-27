@@ -17,10 +17,17 @@ func NewBlockHeader(prevBlockHash []byte) *BlockHeader {
 	}
 }
 
-func NewBlock(blockHeader *BlockHeader, transaction *Transaction) *Block {
+func NewBlockTemplate(blockheader *BlockHeader) *Block {
+	return &Block{
+		Header:       *blockheader,
+		Transactions: []Transaction{},
+	}
+}
+
+func NewBlock(blockHeader *BlockHeader, transactions Transactions) *Block {
 	return &Block{
 		Header:       *blockHeader,
-		Transactions: []Transaction{*transaction},
+		Transactions: transactions,
 	}
 }
 
@@ -47,6 +54,6 @@ func (b *BlockHeader) ComputeBlockHash() []byte {
 	return secondHash[:]
 }
 
-func (b *Block) AddTransaction(tx Transaction) {
-	b.Transactions = append(b.Transactions, tx)
+func (b *Block) AddTransaction() {
+
 }

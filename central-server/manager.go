@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/bhanavigoyal/blockchain/pkg"
+	"github.com/bhanavigoyal/blockchain/shared"
 	"github.com/gorilla/websocket"
 )
 

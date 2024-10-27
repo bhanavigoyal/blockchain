@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/bhanavigoyal/blockchain/pkg"
+	"github.com/bhanavigoyal/blockchain/shared"
 )
 
 func (m *Miner) NewTransactionHandler(event pkg.Event) error {

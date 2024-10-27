@@ -10,9 +10,12 @@ type BlockHeader struct {
 	CurrBlockHash     []byte
 	Nonce             int
 	Target            []byte
+	Height            int
 }
 
 type Block struct {
 	Header       BlockHeader
-	Transactions []Transaction
+	Transactions Transactions
 }
+
+type Transactions []Transaction
