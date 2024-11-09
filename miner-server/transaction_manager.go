@@ -3,7 +3,7 @@ package minerserver
 import (
 	"fmt"
 
-	"github.com/bhanavigoyal/blockchain/shared"
+	pkg "github.com/bhanavigoyal/blockchain/shared"
 	"github.com/ethereum/go-ethereum/crypto/secp256k1"
 )
 

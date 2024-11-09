@@ -52,7 +52,6 @@ func (m *Miner) Listen() {
 			log.Println("Error readiing Event: ", err)
 			return
 		}
-		
 
 		//concurrent event handling??
 		go func(event pkg.Event) {

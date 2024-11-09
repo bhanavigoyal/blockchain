@@ -36,4 +36,3 @@ func (m *Mempool) CheckDoubleSpend(tx *pkg.Transaction) error {
 }
 
 //remove function
-

@@ -27,8 +27,16 @@ func (m *Miner) NewTransactionHandler(event pkg.Event) error {
 }
 
 func (m *Miner) ReceiveMinedBlockHandler(event pkg.Event) error {
-	//check for the validity of new mined block
-	//and if it is valid stop the genertion of the current block and add this to the blockchain
+	var newBlock pkg.Block
+
+	if err := json.Unmarshal(event.Payload, &newBlock); err != nil {
+		return fmt.Errorf("bad payload: %v", err)
+	}
+
+	if err := IsValidBlock(newBlock); err != nil {
+		return fmt.Errorf("error while validating: %v", err)
+	}
+
 	return nil
 }
 

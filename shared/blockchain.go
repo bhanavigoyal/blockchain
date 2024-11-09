@@ -30,7 +30,6 @@ func (s BlockchainStatus) String() string {
 	}
 }
 
-// called after new block is mined and added to the blockchain
 func (chain *Blockchain) CreateNewBlock() *Block {
 	prevBlock := chain.Head.Header.CurrBlockHash
 	newBlockHeader := NewBlockHeader(prevBlock)
@@ -39,5 +38,4 @@ func (chain *Blockchain) CreateNewBlock() *Block {
 
 }
 
-// func ValidBlock(){}
 // func addminedblock(){}

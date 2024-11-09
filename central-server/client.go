@@ -1,7 +1,7 @@
 package centralserver
 
 import (
-	"github.com/bhanavigoyal/blockchain/shared"
+	pkg "github.com/bhanavigoyal/blockchain/shared"
 	"github.com/gorilla/websocket"
 )
 
