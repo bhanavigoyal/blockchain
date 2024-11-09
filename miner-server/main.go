@@ -17,6 +17,7 @@ func main() {
 	mempool := NewMempool()
 	miner := NewMiner(conn, mempool)
 
-	miner.Listen()
+	go miner.Listen()
+	go miner.GenerateNewBlock()
 
 }

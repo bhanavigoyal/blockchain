@@ -31,19 +31,6 @@ func NewBlock(blockHeader *BlockHeader, transactions Transactions) *Block {
 	}
 }
 
-func (b *BlockHeader) MineBlock() {
-	for {
-		if !bytes.Equal(b.CurrBlockHash[:len(b.Target)], b.Target) {
-			b.Nonce += 1
-			b.CurrBlockHash = b.ComputeBlockHash()
-		} else {
-			break
-		}
-	}
-
-	// EventSendNewMinedBlock
-}
-
 func (b *BlockHeader) ComputeBlockHash() []byte {
 	timestamp := []byte(b.Timestamp.String())
 	nonce := []byte(strconv.Itoa(b.Nonce))
@@ -52,8 +39,4 @@ func (b *BlockHeader) ComputeBlockHash() []byte {
 	secondHash := sha256.Sum256(firstHash[:])
 
 	return secondHash[:]
-}
-
-func (b *Block) AddTransaction() {
-
 }

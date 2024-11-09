@@ -33,7 +33,6 @@ func NewMiner(conn *websocket.Conn, mempool *Mempool) *Miner {
 
 func (m *Miner) setupEventHandlers() {
 	m.handlers[pkg.EventNewTransaction] = m.NewTransactionHandler
-	m.handlers[pkg.EventSendNewMinedBlock] = m.SendMinedBlockHandler
 	m.handlers[pkg.EventReceiveNewMinedBlock] = m.ReceiveMinedBlockHandler
 }
 
@@ -53,10 +52,14 @@ func (m *Miner) Listen() {
 			log.Println("Error readiing Event: ", err)
 			return
 		}
+		
 
-		err = m.routeHandler(event)
-		if err != nil {
-			log.Println("Error handling the event", err)
-		}
+		//concurrent event handling??
+		go func(event pkg.Event) {
+			err = m.routeHandler(event)
+			if err != nil {
+				log.Println("Error handling the event", err)
+			}
+		}(event)
 	}
 }

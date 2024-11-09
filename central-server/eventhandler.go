@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/bhanavigoyal/blockchain/shared"
+	pkg "github.com/bhanavigoyal/blockchain/shared"
 )
 
 func NewTransactionHandler(event pkg.Event, client *Client) error {
@@ -42,12 +42,19 @@ func NewMinedBlockHandler(event pkg.Event, client *Client) error {
 		return fmt.Errorf("failed to marshal broadcast message: %v", err)
 	}
 
-	var outgoingEvent pkg.Event
-	outgoingEvent.Payload = data
-	outgoingEvent.Type = pkg.EventReceiveNewMinedBlock
+	outgoingEvent := pkg.Event{
+		Payload: data,
+		Type:    pkg.EventReceiveNewMinedBlock,
+	}
 
 	for c := range client.manager.clients {
-		c.egress <- outgoingEvent
+		select {
+		case c.egress <- outgoingEvent:
+		default:
+			fmt.Printf("Warning: client %v egress channel full, skipping\n", c)
+			//handle skipped clients
+		}
+
 	}
 
 	return nil

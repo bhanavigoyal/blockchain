@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/bhanavigoyal/blockchain/shared"
+	pkg "github.com/bhanavigoyal/blockchain/shared"
 )
 
 func (m *Miner) NewTransactionHandler(event pkg.Event) error {
@@ -27,9 +27,23 @@ func (m *Miner) NewTransactionHandler(event pkg.Event) error {
 }
 
 func (m *Miner) ReceiveMinedBlockHandler(event pkg.Event) error {
+	//check for the validity of new mined block
+	//and if it is valid stop the genertion of the current block and add this to the blockchain
 	return nil
 }
 
-func (m *Miner) SendMinedBlockHandler(event pkg.Event) error {
+func (m *Miner) SendMinedBlockHandler(eventName string, block pkg.Block) error {
+	blockJson, err := json.Marshal(block)
+	if err != nil {
+		return fmt.Errorf("error marshaling block: %v", err)
+	}
+	event := &pkg.Event{Type: eventName, Payload: blockJson}
+	eventJson, err := json.Marshal(event)
+	if err != nil {
+		return fmt.Errorf("error marshaling event: %v", err)
+	}
+	//conection to send event
+	m.conn.WriteJSON(eventJson)
+
 	return nil
 }
