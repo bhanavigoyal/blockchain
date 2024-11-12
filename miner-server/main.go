@@ -20,4 +20,5 @@ func main() {
 	go miner.Listen()
 	go miner.GenerateNewBlock()
 
+	select {}
 }

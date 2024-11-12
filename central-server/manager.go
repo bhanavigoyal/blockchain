@@ -44,13 +44,17 @@ func (m *Manager) setupEventHandlers() {
 
 func (m *Manager) routeHandler(event pkg.Event, client *Client) error {
 	if handler, ok := m.handlers[event.Type]; ok {
-		if err := handler(event, client); err != nil {
-			return err
-		}
-		return nil
+		go func() error {
+			if err := handler(event, client); err != nil {
+				return err
+			}
+			return nil
+		}()
 	} else {
 		return ErrEventNotSupported
 	}
+
+	return nil
 }
 
 func (m *Manager) addClient(client *Client) {
@@ -83,9 +87,13 @@ func (m *Manager) serveWs(w http.ResponseWriter, r *http.Request) {
 	client := NewClient(conn, m)
 	m.addClient(client)
 	go m.listenToClients(client)
+
 }
 
 func (m *Manager) listenToClients(client *Client) {
+	defer func() {
+		client.manager.removeClient(client)
+	}()
 	//listen to all the incoming events
 	for {
 		var event pkg.Event

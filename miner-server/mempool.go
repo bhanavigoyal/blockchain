@@ -35,4 +35,9 @@ func (m *Mempool) CheckDoubleSpend(tx *pkg.Transaction) error {
 	}
 }
 
-//remove function
+func (m *Mempool) RemoveTransaction(tx *pkg.Transaction) {
+	m.Lock()
+	defer m.Unlock()
+
+	delete(m.transactions, string(tx.TxID))
+}

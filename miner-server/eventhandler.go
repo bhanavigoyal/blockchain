@@ -33,7 +33,7 @@ func (m *Miner) ReceiveMinedBlockHandler(event pkg.Event) error {
 		return fmt.Errorf("bad payload: %v", err)
 	}
 
-	if err := IsValidBlock(newBlock); err != nil {
+	if err := m.IsValidBlock(newBlock); err != nil {
 		return fmt.Errorf("error while validating: %v", err)
 	}
 

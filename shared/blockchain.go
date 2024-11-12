@@ -38,4 +38,16 @@ func (chain *Blockchain) CreateNewBlock() *Block {
 
 }
 
-// func addminedblock(){}
+func (chain *Blockchain) genesisBlock() {
+	//implement genesis block
+}
+
+func (chain *Blockchain) AddMinedBlock(block *Block) {
+	if chain.Head == nil {
+		chain.genesisBlock()
+	}
+
+	chain.Head = block
+	chain.Height++
+
+}

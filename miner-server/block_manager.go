@@ -7,7 +7,7 @@ import (
 	pkg "github.com/bhanavigoyal/blockchain/shared"
 )
 
-func IsValidBlock(block pkg.Block) error {
+func (m *Miner) IsValidBlock(block pkg.Block) error {
 	for _, tx := range block.Transactions {
 		if err := IsValid(&tx); err != nil {
 			return fmt.Errorf("invalid txns: %v, %v", tx, err)
@@ -17,9 +17,21 @@ func IsValidBlock(block pkg.Block) error {
 	if !bytes.Equal(block.Header.CurrBlockHash[:len(block.Header.Target)], block.Header.Target) {
 		return fmt.Errorf("invalid block hash")
 	}
+
+	//halt mining of block and
+	close(m.stopMiningChan)
+
 	//remove the txn from mempool
-	//halt mining of block and start new block creation
+	for _, tx := range block.Transactions {
+		m.mempool.RemoveTransaction(&tx)
+	}
+
+	//start new block creation
+	m.stopMiningChan = make(chan struct{})
+	go m.GenerateNewBlock()
+
 	//add to blockchain
+	m.blockchain.AddMinedBlock(&block)
 
 	return nil
 }

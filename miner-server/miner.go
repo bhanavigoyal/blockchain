@@ -13,17 +13,19 @@ var ErrEventNotSupported = errors.New("this event type is not supported")
 type EventHandler func(event pkg.Event) error
 
 type Miner struct {
-	conn       *websocket.Conn
-	handlers   map[string]EventHandler
-	mempool    *Mempool
-	blockchain *pkg.Blockchain
+	conn           *websocket.Conn
+	handlers       map[string]EventHandler
+	mempool        *Mempool
+	blockchain     *pkg.Blockchain
+	stopMiningChan chan struct{}
 }
 
 func NewMiner(conn *websocket.Conn, mempool *Mempool) *Miner {
 	m := &Miner{
-		conn:     conn,
-		handlers: make(map[string]EventHandler),
-		mempool:  mempool,
+		conn:           conn,
+		handlers:       make(map[string]EventHandler),
+		mempool:        mempool,
+		stopMiningChan: make(chan struct{}),
 		//implement blockchain logic for new miner to get current state of blockchain
 	}
 
@@ -38,10 +40,16 @@ func (m *Miner) setupEventHandlers() {
 
 func (m *Miner) routeHandler(event pkg.Event) error {
 	if handler, ok := m.handlers[event.Type]; ok {
-		return handler(event)
+		go func() error {
+			if err := handler(event); err != nil {
+				return err
+			}
+			return nil
+		}()
+	} else {
+		return ErrEventNotSupported
 	}
-
-	return ErrEventNotSupported
+	return nil
 }
 
 func (m *Miner) Listen() {
@@ -52,13 +60,7 @@ func (m *Miner) Listen() {
 			log.Println("Error readiing Event: ", err)
 			return
 		}
+		m.routeHandler(event)
 
-		//concurrent event handling??
-		go func(event pkg.Event) {
-			err = m.routeHandler(event)
-			if err != nil {
-				log.Println("Error handling the event", err)
-			}
-		}(event)
 	}
 }

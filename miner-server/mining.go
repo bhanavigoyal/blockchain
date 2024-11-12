@@ -15,24 +15,29 @@ func (m *Miner) GenerateNewBlock() {
 	startTime := time.Now()
 
 	for len(block.Transactions) < 5 {
-		for txId, tx := range m.mempool.transactions {
-			if addedTxns[txId] {
-				continue
+		select {
+		case <-m.stopMiningChan:
+		default:
+			for txId, tx := range m.mempool.transactions {
+				if addedTxns[txId] {
+					continue
+				}
+
+				block.Transactions = append(block.Transactions, *tx)
+				addedTxns[txId] = true
+
+				if len(block.Transactions) >= 5 {
+					break
+				}
 			}
 
-			block.Transactions = append(block.Transactions, *tx)
-			addedTxns[txId] = true
-
-			if len(block.Transactions) >= 5 {
+			if time.Since(startTime) > time.Minute {
 				break
 			}
+
+			time.Sleep(10 * time.Second)
 		}
 
-		if time.Since(startTime) > time.Minute {
-			break
-		}
-
-		time.Sleep(10 * time.Second)
 	}
 
 	if len(block.Transactions) > 0 {
@@ -44,14 +49,16 @@ func (m *Miner) GenerateNewBlock() {
 
 func MineBlock(b *pkg.Block, m *Miner) {
 	for {
-		if !bytes.Equal(b.Header.CurrBlockHash[:len(b.Header.Target)], b.Header.Target) {
-			b.Header.Nonce += 1
-			b.Header.CurrBlockHash = b.Header.ComputeBlockHash()
-		} else {
-			break
+		select {
+		case <-m.stopMiningChan:
+		default:
+			if !bytes.Equal(b.Header.CurrBlockHash[:len(b.Header.Target)], b.Header.Target) {
+				b.Header.Nonce += 1
+				b.Header.CurrBlockHash = b.Header.ComputeBlockHash()
+			} else {
+				m.SendMinedBlockHandler(pkg.EventSendNewMinedBlock, *b)
+				return
+			}
 		}
 	}
-
-	m.SendMinedBlockHandler(pkg.EventSendNewMinedBlock, *b)
-
 }
