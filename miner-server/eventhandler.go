@@ -46,12 +46,7 @@ func (m *Miner) SendMinedBlockHandler(eventName string, block pkg.Block) error {
 		return fmt.Errorf("error marshaling block: %v", err)
 	}
 	event := &pkg.Event{Type: eventName, Payload: blockJson}
-	eventJson, err := json.Marshal(event)
-	if err != nil {
-		return fmt.Errorf("error marshaling event: %v", err)
-	}
-	//conection to send event
-	m.conn.WriteJSON(eventJson)
+	m.egress <- *event
 
 	return nil
 }

@@ -19,6 +19,7 @@ func main() {
 
 	go miner.Listen()
 	go miner.GenerateNewBlock()
-
+	go miner.sendMessage()
+	
 	select {}
 }

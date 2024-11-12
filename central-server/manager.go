@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"sync"
+	"time"
 
 	pkg "github.com/bhanavigoyal/blockchain/shared"
 	"github.com/gorilla/websocket"
@@ -87,6 +88,7 @@ func (m *Manager) serveWs(w http.ResponseWriter, r *http.Request) {
 	client := NewClient(conn, m)
 	m.addClient(client)
 	go m.listenToClients(client)
+	go client.sendMessage()
 
 }
 
@@ -94,6 +96,14 @@ func (m *Manager) listenToClients(client *Client) {
 	defer func() {
 		client.manager.removeClient(client)
 	}()
+
+	if err := client.connection.SetReadDeadline(time.Now().Add(pkg.PongWait)); err != nil {
+		log.Printf("err: %v", err)
+		return
+	}
+
+	client.connection.SetPongHandler(client.PongHandler)
+
 	//listen to all the incoming events
 	for {
 		var event pkg.Event
