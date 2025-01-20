@@ -41,6 +41,8 @@ func (chain *Blockchain) CreateNewBlock() *Block {
 
 func (chain *Blockchain) genesisBlock() {
 	//implement genesis block
+	//make a genesis wallet
+	//add some initial coins to it
 }
 
 func (chain *Blockchain) AddMinedBlock(block *Block) {
