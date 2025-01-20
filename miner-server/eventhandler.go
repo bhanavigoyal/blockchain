@@ -13,7 +13,7 @@ func (m *Miner) NewTransactionHandler(event pkg.Event) error {
 		return fmt.Errorf("bad payload request: %v", err)
 	}
 
-	if err := IsValid(&newTransaction.Transaction); err != nil {
+	if err := m.IsValid(&newTransaction.Transaction); err != nil {
 		return fmt.Errorf("invalid Transaction: %v", err)
 	}
 

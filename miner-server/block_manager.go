@@ -9,7 +9,7 @@ import (
 
 func (m *Miner) IsValidBlock(block pkg.Block) error {
 	for _, tx := range block.Transactions {
-		if err := IsValid(&tx); err != nil {
+		if err := m.IsValid(&tx); err != nil {
 			return fmt.Errorf("invalid txns: %v, %v", tx, err)
 		}
 	}
@@ -29,6 +29,9 @@ func (m *Miner) IsValidBlock(block pkg.Block) error {
 	//start new block creation
 	m.stopMiningChan = make(chan struct{})
 	go m.GenerateNewBlock()
+
+	//process txns
+	m.ProcessingTxns(&block)
 
 	//add to blockchain
 	m.blockchain.AddMinedBlock(&block)

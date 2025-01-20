@@ -6,7 +6,8 @@ type Blockchain struct {
 	Branchlen int
 	Status    BlockchainStatus
 	Blocks    map[string]*Block
-	Forks     []*Block //heads of forkchains
+	Forks     []*Block       //heads of forkchains
+	Balances  map[string]int //add decimal
 }
 
 type BlockchainStatus int
