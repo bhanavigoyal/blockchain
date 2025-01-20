@@ -77,7 +77,7 @@ func (m *Manager) removeClient(client *Client) {
 	}
 }
 
-func (m *Manager) serveWs(w http.ResponseWriter, r *http.Request) {
+func (m *Manager) ServeWs(w http.ResponseWriter, r *http.Request) {
 	log.Print("new connection")
 	conn, err := websocketUpgrader.Upgrade(w, r, nil)
 	if err != nil {
