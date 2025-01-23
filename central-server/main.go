@@ -9,8 +9,8 @@ import (
 
 func main() {
 	setupAPI()
-	log.Println("Server started on :8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Println("Server started on :9090")
+	log.Fatal(http.ListenAndServe(":9090", nil))
 }
 
 func setupAPI() {

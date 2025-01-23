@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
-	"time"
+	"os"
 
 	pkg "github.com/bhanavigoyal/blockchain/shared"
 	"github.com/gorilla/websocket"
@@ -21,7 +21,7 @@ type Miner struct {
 	blockchain     *pkg.Blockchain
 	egress         chan pkg.Event
 	ingress        chan pkg.Event
-	stopMiningChan chan struct{}
+	StopMiningChan chan struct{}
 }
 
 func NewMiner(conn *websocket.Conn, mempool *Mempool) *Miner {
@@ -29,8 +29,8 @@ func NewMiner(conn *websocket.Conn, mempool *Mempool) *Miner {
 		conn:           conn,
 		handlers:       make(map[string]EventHandler),
 		mempool:        mempool,
-		stopMiningChan: make(chan struct{}),
-		egress:         make(chan pkg.Event),
+		StopMiningChan: make(chan struct{}),
+		egress:         make(chan pkg.Event, 100),
 		//implement blockchain logic for new miner to get current state of blockchain
 	}
 
@@ -38,18 +38,20 @@ func NewMiner(conn *websocket.Conn, mempool *Mempool) *Miner {
 	return m
 }
 
-func (m *Miner) PongHandler(pongMsg string) error {
-	log.Printf("pong")
+/*
+func (m *Miner) PingHandler(pingMsg string) error {
+	log.Printf("Ping received: %v", pingMsg)
 
 	return m.conn.SetReadDeadline(time.Now().Add(pkg.PongWait))
 }
+*/
 
-func (m *Miner) sendMessage() {
+func (m *Miner) SendMessage() {
 
-	ticker := time.NewTicker(pkg.PingInterval)
 	defer func() {
-		ticker.Stop()
 		m.conn.Close()
+		os.Exit(0)
+		log.Printf("connection closed")
 	}()
 
 	for {
@@ -71,14 +73,6 @@ func (m *Miner) sendMessage() {
 				log.Printf("error sending message: %v", err)
 			}
 			log.Printf("message sent")
-		case <-ticker.C:
-			log.Printf("Ping!")
-
-			if err := m.conn.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
-				log.Printf("writemsg: %v", err)
-				return
-			}
-
 		}
 	}
 }
@@ -90,11 +84,10 @@ func (m *Miner) setupEventHandlers() {
 
 func (m *Miner) routeHandler(event pkg.Event) error {
 	if handler, ok := m.handlers[event.Type]; ok {
-		go func() error {
+		go func() {
 			if err := handler(event); err != nil {
-				return err
+				log.Printf("Error handling event %s: %v", event.Type, err)
 			}
-			return nil
 		}()
 	} else {
 		return ErrEventNotSupported
@@ -106,23 +99,42 @@ func (m *Miner) Listen() {
 
 	defer func() {
 		m.conn.Close()
+		os.Exit(0)
 	}()
 
-	if err := m.conn.SetReadDeadline(time.Now().Add(pkg.PongWait)); err != nil {
-		log.Printf("err: %v", err)
-		return
-	}
-
-	m.conn.SetPongHandler(m.PongHandler)
 
 	for {
-		var event pkg.Event
-		err := m.conn.ReadJSON(&event)
+		messageType, rawMessage, err := m.conn.ReadMessage()
 		if err != nil {
-			log.Println("Error readiing Event: ", err)
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+				log.Printf("error reading message: %v", err)
+			} else {
+				log.Printf("Error reading Event: %v", err)
+			}
+			if err:= m.conn.Close(); err!=nil{
+				log.Printf("Error closing connection: %v", err)
+			} else{
+				log.Printf("Closed Connection")
+				os.Exit(0)
+			}
 			return
 		}
-		m.routeHandler(event)
+
+		switch messageType {
+		case websocket.TextMessage:
+			var event pkg.Event
+			if err := json.Unmarshal(rawMessage, &event); err != nil {
+				log.Printf("Error unmarshaling message: %v", err)
+				continue
+			}
+
+			m.routeHandler(event)
+
+		// case websocket.PingMessage:
+
+		// 	m.conn.SetPingHandler(m.PingHandler)
+
+		}
 
 	}
 }

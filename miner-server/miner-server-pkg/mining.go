@@ -16,7 +16,7 @@ func (m *Miner) GenerateNewBlock() {
 
 	for len(block.Transactions) < 5 {
 		select {
-		case <-m.stopMiningChan:
+		case <-m.StopMiningChan:
 		default:
 			for txId, tx := range m.mempool.transactions {
 				if addedTxns[txId] {
@@ -50,7 +50,7 @@ func (m *Miner) GenerateNewBlock() {
 func MineBlock(b *pkg.Block, m *Miner) {
 	for {
 		select {
-		case <-m.stopMiningChan:
+		case <-m.StopMiningChan:
 		default:
 			if !bytes.Equal(b.Header.CurrBlockHash[:len(b.Header.Target)], b.Header.Target) {
 				b.Header.Nonce += 1

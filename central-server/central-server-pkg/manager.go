@@ -1,7 +1,9 @@
 package centralserver
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"sync"
@@ -66,15 +68,22 @@ func (m *Manager) addClient(client *Client) {
 }
 
 // add the handling of disconnection
-func (m *Manager) removeClient(client *Client) {
+func (m *Manager) removeClient(client *Client) error {
 	m.Lock()
 	defer m.Unlock()
 
 	if _, ok := m.clients[client]; ok {
-		client.connection.Close()
+		if err := client.connection.Close(); err!=nil{
+			fmt.Printf("Error closing connection %v", err)
+			return err
+		}
 
 		delete(m.clients, client)
+		log.Printf("connection closed %v", client.ID)
 	}
+
+	return nil
+
 }
 
 func (m *Manager) ServeWs(w http.ResponseWriter, r *http.Request) {
@@ -106,19 +115,41 @@ func (m *Manager) listenToClients(client *Client) {
 
 	//listen to all the incoming events
 	for {
-		var event pkg.Event
-		err := client.connection.ReadJSON(&event)
-
+		messageType, rawMessage, err := client.connection.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Printf("error reading message: %v", err)
+				log.Printf("error reading message from %v: %v",client.ID, err)
+			} else {
+				log.Printf("Error reading Event from %v: %v",client.ID, err)
 			}
-			break //close connection
+			if err:=client.manager.removeClient(client); err!=nil{
+				log.Printf("error removing client %v: %v",client.ID, err)
+			}
+			break
 		}
 
-		err = m.routeHandler(event, client)
-		if err != nil {
-			log.Printf("error handling new mined block event: %v", err)
+		switch messageType {
+		case websocket.TextMessage:
+			var event pkg.Event
+			if err := json.Unmarshal(rawMessage, &event); err != nil {
+				log.Printf("Error unmarshaling event from %v: %v",client.ID, err)
+				break
+			}
+			if err = m.routeHandler(event, client); err!= nil{
+				log.Printf("error handling new mined block event from %v: %v",client.ID, err)
+			}
+			
+
+		case websocket.PongMessage:
+			var message string
+			if err:= json.Unmarshal(rawMessage, &message); err!= nil{
+				log.Printf("Error unmarshaling message from %v: %v", client.ID, err)
+				continue
+			}
+
+			client.connection.SetPongHandler(client.PongHandler)
+
 		}
+
 	}
 }

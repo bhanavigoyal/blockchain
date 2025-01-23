@@ -19,7 +19,7 @@ func (m *Miner) IsValidBlock(block pkg.Block) error {
 	}
 
 	//halt mining of block and
-	close(m.stopMiningChan)
+	close(m.StopMiningChan)
 
 	//remove the txn from mempool
 	for _, tx := range block.Transactions {
@@ -27,7 +27,7 @@ func (m *Miner) IsValidBlock(block pkg.Block) error {
 	}
 
 	//start new block creation
-	m.stopMiningChan = make(chan struct{})
+	m.StopMiningChan = make(chan struct{})
 	go m.GenerateNewBlock()
 
 	//process txns
