@@ -2,6 +2,7 @@ package minerserver
 
 import (
 	"bytes"
+	"fmt"
 	"time"
 
 	pkg "github.com/bhanavigoyal/blockchain/shared"
@@ -9,15 +10,23 @@ import (
 
 func (m *Miner) GenerateNewBlock() {
 	block := m.blockchain.CreateNewBlock()
+	fmt.Printf("%v",block)
 
 	addedTxns := make(map[string]bool)
 
 	startTime := time.Now()
 
 	for len(block.Transactions) < 5 {
+
+		if time.Since(startTime) > time.Minute {
+			fmt.Println("Time limit exceeded, stopping block generation")
+			break
+		}
+
 		select {
 		case <-m.StopMiningChan:
 		default:
+			fmt.Println("here")
 			for txId, tx := range m.mempool.transactions {
 				if addedTxns[txId] {
 					continue
@@ -31,10 +40,6 @@ func (m *Miner) GenerateNewBlock() {
 				}
 			}
 
-			if time.Since(startTime) > time.Minute {
-				break
-			}
-
 			time.Sleep(10 * time.Second)
 		}
 
@@ -43,8 +48,9 @@ func (m *Miner) GenerateNewBlock() {
 	if len(block.Transactions) > 0 {
 		newblock := pkg.NewBlock(&block.Header, block.Transactions)
 		MineBlock(newblock, m)
+	} else {
+		m.GenerateNewBlock()
 	}
-
 }
 
 func MineBlock(b *pkg.Block, m *Miner) {

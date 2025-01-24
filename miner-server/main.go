@@ -19,13 +19,14 @@ func main() {
 	defer conn.Close()
 
 	mempool := minerserver.NewMempool()
+	// chainhead := 
 	miner := minerserver.NewMiner(conn, mempool)
 
 	stopChan := make(chan os.Signal, 1)
 	signal.Notify(stopChan, syscall.SIGINT, syscall.SIGTERM)
 
 	go miner.Listen()
-	// go miner.GenerateNewBlock()
+	go miner.GenerateNewBlock()
 	go miner.SendMessage()
 
 	<-stopChan

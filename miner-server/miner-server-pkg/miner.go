@@ -15,12 +15,12 @@ var ErrEventNotSupported = errors.New("this event type is not supported")
 type EventHandler func(event pkg.Event) error
 
 type Miner struct {
-	conn           *websocket.Conn
-	handlers       map[string]EventHandler
-	mempool        *Mempool
-	blockchain     *pkg.Blockchain
-	egress         chan pkg.Event
-	ingress        chan pkg.Event
+	conn       *websocket.Conn
+	handlers   map[string]EventHandler
+	mempool    *Mempool
+	blockchain *pkg.Blockchain
+	egress     chan pkg.Event
+	// ingress        chan pkg.Event
 	StopMiningChan chan struct{}
 }
 
@@ -32,8 +32,10 @@ func NewMiner(conn *websocket.Conn, mempool *Mempool) *Miner {
 		StopMiningChan: make(chan struct{}),
 		egress:         make(chan pkg.Event, 100),
 		//implement blockchain logic for new miner to get current state of blockchain
+		blockchain: &pkg.Blockchain{},
 	}
 
+	m.synchronizeWithServer(m.conn)
 	m.setupEventHandlers()
 	return m
 }
@@ -55,25 +57,23 @@ func (m *Miner) SendMessage() {
 	}()
 
 	for {
-		select {
-		case message, ok := <-m.egress:
-			if !ok {
-				if err := m.conn.WriteMessage(websocket.CloseMessage, nil); err != nil {
-					// Log that the connection is closed and the reason
-					log.Println("connection closed: ", err)
-				}
-				// Return to close the goroutine
-				return
+		message, ok := <-m.egress
+		if !ok {
+			if err := m.conn.WriteMessage(websocket.CloseMessage, nil); err != nil {
+				// Log that the connection is closed and the reason
+				log.Println("connection closed: ", err)
 			}
-			eventJson, err := json.Marshal(message)
-			if err != nil {
-				log.Printf("error marshaling event: %v", err)
-			}
-			if err := m.conn.WriteJSON(eventJson); err != nil {
-				log.Printf("error sending message: %v", err)
-			}
-			log.Printf("message sent")
+			// Return to close the goroutine
+			return
 		}
+		eventJson, err := json.Marshal(message)
+		if err != nil {
+			log.Printf("error marshaling event: %v", err)
+		}
+		if err := m.conn.WriteJSON(eventJson); err != nil {
+			log.Printf("error sending message: %v", err)
+		}
+		log.Printf("message sent")
 	}
 }
 
@@ -102,7 +102,6 @@ func (m *Miner) Listen() {
 		os.Exit(0)
 	}()
 
-
 	for {
 		messageType, rawMessage, err := m.conn.ReadMessage()
 		if err != nil {
@@ -111,9 +110,9 @@ func (m *Miner) Listen() {
 			} else {
 				log.Printf("Error reading Event: %v", err)
 			}
-			if err:= m.conn.Close(); err!=nil{
+			if err := m.conn.Close(); err != nil {
 				log.Printf("Error closing connection: %v", err)
-			} else{
+			} else {
 				log.Printf("Closed Connection")
 				os.Exit(0)
 			}
@@ -130,11 +129,34 @@ func (m *Miner) Listen() {
 
 			m.routeHandler(event)
 
-		// case websocket.PingMessage:
+			// case websocket.PingMessage:
 
-		// 	m.conn.SetPingHandler(m.PingHandler)
+			// 	m.conn.SetPingHandler(m.PingHandler)
 
 		}
 
 	}
+}
+
+func (m *Miner) synchronizeWithServer(conn *websocket.Conn) {
+	if err := conn.WriteMessage(websocket.TextMessage, []byte("SYNC")); err != nil {
+		log.Printf("Error requesting synchronization: %v", err)
+		return
+	}
+
+	_, rawMessage, err := conn.ReadMessage()
+
+	if err != nil {
+		log.Printf("Error receiving blockchain from server: %v", err)
+		return
+	}
+
+	var globalBlockchain pkg.Blockchain
+	if err := json.Unmarshal(rawMessage, &globalBlockchain); err != nil {
+		log.Printf("Error unmarshaling global blockchain: %v", err)
+		return
+	}
+
+	m.blockchain = &globalBlockchain
+	log.Printf("Miner synchronized with global blockchain")
 }

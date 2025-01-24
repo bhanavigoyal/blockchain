@@ -3,11 +3,12 @@ package centralserver
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 
 	pkg "github.com/bhanavigoyal/blockchain/shared"
 )
 
-func NewTransactionHandler(event pkg.Event, client *Client) error {
+func (m *Manager) NewTransactionHandler(event pkg.Event, client *Client) error {
 	var transactionEvent pkg.NewTransactionPayload
 	if err := json.Unmarshal(event.Payload, &transactionEvent); err != nil {
 		return fmt.Errorf("bad payload request: %v", err)
@@ -30,11 +31,21 @@ func NewTransactionHandler(event pkg.Event, client *Client) error {
 	return nil
 }
 
-func NewMinedBlockHandler(event pkg.Event, client *Client) error {
+func (m *Manager) NewMinedBlockHandler(event pkg.Event, client *Client) error {
 	var minedBlockEvent pkg.NewMinedBlockPayload
 	if err := json.Unmarshal(event.Payload, &minedBlockEvent); err != nil {
 		return fmt.Errorf("bad payload request: %v", err)
 	}
+
+	//add vlidation
+	// m.Lock()
+	// defer m.Unlock()
+
+	if err := m.IsValidBlock(minedBlockEvent.Block); err != nil {
+		return fmt.Errorf("error in block validation: %v", err)
+	}
+
+	//if validated then broadcast
 
 	data, err := json.Marshal(minedBlockEvent)
 
@@ -60,3 +71,14 @@ func NewMinedBlockHandler(event pkg.Event, client *Client) error {
 	return nil
 
 }
+
+
+func (m *Manager) SynchronizeMiner(client *Client){
+	m.Lock()
+	defer m.Unlock()
+
+	if err := client.connection.WriteJSON(m.blockchain); err != nil {
+		log.Printf("Error synchronizing miner: %v", err)
+	}
+}
+

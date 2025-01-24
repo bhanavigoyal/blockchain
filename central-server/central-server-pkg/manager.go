@@ -25,24 +25,26 @@ var (
 type EventHandler func(event pkg.Event, client *Client) error
 
 type Manager struct {
-	clients  ClientList
-	handlers map[string]EventHandler
+	clients    ClientList
+	handlers   map[string]EventHandler
+	blockchain pkg.Blockchain
 	sync.RWMutex
 }
 
 func NewManager() *Manager {
 	m := &Manager{
-		clients:  make(ClientList),
-		handlers: make(map[string]EventHandler),
+		clients:    make(ClientList),
+		handlers:   make(map[string]EventHandler),
+		blockchain: pkg.Blockchain{Balances: make(map[string]int)},
 	}
-
+	m.blockchain.CreateNewBlock()
 	m.setupEventHandlers()
 	return m
 }
 
 func (m *Manager) setupEventHandlers() {
-	m.handlers[pkg.EventNewTransaction] = NewTransactionHandler
-	m.handlers[pkg.EventSendNewMinedBlock] = NewMinedBlockHandler
+	m.handlers[pkg.EventNewTransaction] = m.NewTransactionHandler
+	m.handlers[pkg.EventSendNewMinedBlock] = m.NewMinedBlockHandler
 }
 
 func (m *Manager) routeHandler(event pkg.Event, client *Client) error {
@@ -73,8 +75,8 @@ func (m *Manager) removeClient(client *Client) error {
 	defer m.Unlock()
 
 	if _, ok := m.clients[client]; ok {
-		if err := client.connection.Close(); err!=nil{
-			fmt.Printf("Error closing connection %v", err)
+		if err := client.connection.Close(); err != nil {
+			fmt.Printf("Error closing connection from %v: %v", client.ID, err)
 			return err
 		}
 
@@ -118,37 +120,38 @@ func (m *Manager) listenToClients(client *Client) {
 		messageType, rawMessage, err := client.connection.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Printf("error reading message from %v: %v",client.ID, err)
+				log.Printf("error reading message from %v: %v", client.ID, err)
 			} else {
-				log.Printf("Error reading Event from %v: %v",client.ID, err)
+				log.Printf("Error reading Event from %v: %v", client.ID, err)
 			}
-			if err:=client.manager.removeClient(client); err!=nil{
-				log.Printf("error removing client %v: %v",client.ID, err)
+			if err := client.manager.removeClient(client); err != nil {
+				log.Printf("error removing client %v: %v", client.ID, err)
 			}
 			break
 		}
 
 		switch messageType {
 		case websocket.TextMessage:
-			var event pkg.Event
-			if err := json.Unmarshal(rawMessage, &event); err != nil {
-				log.Printf("Error unmarshaling event from %v: %v",client.ID, err)
-				break
-			}
-			if err = m.routeHandler(event, client); err!= nil{
-				log.Printf("error handling new mined block event from %v: %v",client.ID, err)
-			}
-			
+			m.SynchronizeMiner(client)
 
 		case websocket.PongMessage:
 			var message string
-			if err:= json.Unmarshal(rawMessage, &message); err!= nil{
+			if err := json.Unmarshal(rawMessage, &message); err != nil {
 				log.Printf("Error unmarshaling message from %v: %v", client.ID, err)
 				continue
 			}
 
 			client.connection.SetPongHandler(client.PongHandler)
 
+		default:
+			var event pkg.Event
+			if err := json.Unmarshal(rawMessage, &event); err != nil {
+				log.Printf("Error unmarshaling event from %v: %v", client.ID, err)
+				break
+			}
+			if err = m.routeHandler(event, client); err != nil {
+				log.Printf("error handling new mined block event from %v: %v", client.ID, err)
+			}
 		}
 
 	}

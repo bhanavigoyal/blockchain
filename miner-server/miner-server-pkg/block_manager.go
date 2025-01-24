@@ -18,18 +18,6 @@ func (m *Miner) IsValidBlock(block pkg.Block) error {
 		return fmt.Errorf("invalid block hash")
 	}
 
-	//halt mining of block and
-	close(m.StopMiningChan)
-
-	//remove the txn from mempool
-	for _, tx := range block.Transactions {
-		m.mempool.RemoveTransaction(&tx)
-	}
-
-	//start new block creation
-	m.StopMiningChan = make(chan struct{})
-	go m.GenerateNewBlock()
-
 	//process txns
 	m.ProcessingTxns(&block)
 
@@ -37,4 +25,26 @@ func (m *Miner) IsValidBlock(block pkg.Block) error {
 	m.blockchain.AddMinedBlock(&block)
 
 	return nil
+}
+
+
+func (m *Miner) AddNewBlock(block pkg.Block) {
+		//halt mining of block and
+		close(m.StopMiningChan)
+
+
+		//remove the txn from mempool
+		for _, tx := range block.Transactions {
+			m.mempool.RemoveTransaction(&tx)
+		}
+	
+		//start new block creation
+		m.StopMiningChan = make(chan struct{})
+		go m.GenerateNewBlock()
+	
+		//process txns
+		m.ProcessingTxns(&block)
+	
+		//add to blockchain
+		m.blockchain.AddMinedBlock(&block)
 }
