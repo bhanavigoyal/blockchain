@@ -19,7 +19,6 @@ func main() {
 	defer conn.Close()
 
 	mempool := minerserver.NewMempool()
-	// chainhead := 
 	miner := minerserver.NewMiner(conn, mempool)
 
 	stopChan := make(chan os.Signal, 1)

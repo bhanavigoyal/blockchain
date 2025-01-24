@@ -27,24 +27,22 @@ func (m *Miner) IsValidBlock(block pkg.Block) error {
 	return nil
 }
 
-
 func (m *Miner) AddNewBlock(block pkg.Block) {
-		//halt mining of block and
-		close(m.StopMiningChan)
+	//halt mining of block and
+	close(m.StopMiningChan)
 
+	//remove the txn from mempool
+	for _, tx := range block.Transactions {
+		m.mempool.RemoveTransaction(&tx)
+	}
 
-		//remove the txn from mempool
-		for _, tx := range block.Transactions {
-			m.mempool.RemoveTransaction(&tx)
-		}
-	
-		//start new block creation
-		m.StopMiningChan = make(chan struct{})
-		go m.GenerateNewBlock()
-	
-		//process txns
-		m.ProcessingTxns(&block)
-	
-		//add to blockchain
-		m.blockchain.AddMinedBlock(&block)
+	//start new block creation
+	m.StopMiningChan = make(chan struct{})
+	go m.GenerateNewBlock()
+
+	//process txns
+	m.ProcessingTxns(&block)
+
+	//add to blockchain
+	m.blockchain.AddMinedBlock(&block)
 }

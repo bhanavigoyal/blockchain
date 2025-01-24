@@ -10,7 +10,7 @@ import (
 
 func (m *Miner) GenerateNewBlock() {
 	block := m.blockchain.CreateNewBlock()
-	fmt.Printf("%v",block)
+	fmt.Printf("New Block : %v", block)
 
 	addedTxns := make(map[string]bool)
 
@@ -19,14 +19,14 @@ func (m *Miner) GenerateNewBlock() {
 	for len(block.Transactions) < 5 {
 
 		if time.Since(startTime) > time.Minute {
-			fmt.Println("Time limit exceeded, stopping block generation")
+			fmt.Println("Time limit exceeded, stopping txns addition")
 			break
 		}
 
 		select {
 		case <-m.StopMiningChan:
 		default:
-			fmt.Println("here")
+			fmt.Println("looping txns")
 			for txId, tx := range m.mempool.transactions {
 				if addedTxns[txId] {
 					continue

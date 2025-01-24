@@ -31,8 +31,7 @@ func NewMiner(conn *websocket.Conn, mempool *Mempool) *Miner {
 		mempool:        mempool,
 		StopMiningChan: make(chan struct{}),
 		egress:         make(chan pkg.Event, 100),
-		//implement blockchain logic for new miner to get current state of blockchain
-		blockchain: &pkg.Blockchain{},
+		blockchain:     &pkg.Blockchain{},
 	}
 
 	m.synchronizeWithServer(m.conn)

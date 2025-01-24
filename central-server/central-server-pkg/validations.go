@@ -47,7 +47,7 @@ func (m *Manager) IsValid(t pkg.Transaction) error {
 	return nil
 }
 
-func (m *Manager) ProcessingTxns(block pkg.Block) error{
+func (m *Manager) ProcessingTxns(block pkg.Block) error {
 	for _, tx := range block.Transactions {
 		if err := m.IsValid(tx); err == nil {
 			m.blockchain.Balances[string(tx.PublicKey)] -= tx.Amount

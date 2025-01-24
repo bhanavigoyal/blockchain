@@ -1,16 +1,18 @@
 package pkg
 
-
 type Blockchain struct {
-	Head   *Block
-	Height int
+	Head     *Block
+	Height   int
+	Balances map[string]int //add decimal
+
 	// Branchlen int
 	// Status    BlockchainStatus
 	// Blocks    map[string]*Block
 	// Forks     []*Block       //heads of forkchains
-	Balances map[string]int //add decimal
+
 }
 
+/*
 type BlockchainStatus int
 
 const (
@@ -31,6 +33,7 @@ func (s BlockchainStatus) String() string {
 		return "Unknown"
 	}
 }
+*/
 
 func (chain *Blockchain) CreateNewBlock() *Block {
 	if chain.Height == 0 {
@@ -43,7 +46,7 @@ func (chain *Blockchain) CreateNewBlock() *Block {
 	return newBlock
 }
 
-func (chain *Blockchain) genesisBlock() *Block{
+func (chain *Blockchain) genesisBlock() *Block {
 	//implement genesis block
 	prevBlock := []byte("0")
 	newBlockHeader := NewBlockHeader(prevBlock)
@@ -61,10 +64,3 @@ func (chain *Blockchain) AddMinedBlock(block *Block) {
 	chain.Head = block
 	chain.Height++
 }
-
-// func (chain *Blockchain) GetBlockchain(head *Block, height int, balances map[string]int) (*Block, int, map[string]int) {
-// 	head = chain.Head
-// 	height = chain.Height
-// 	balances = chain.Balances
-// 	return head, height, balances
-// }

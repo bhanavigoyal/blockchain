@@ -69,7 +69,6 @@ func (m *Manager) addClient(client *Client) {
 	m.clients[client] = true
 }
 
-// add the handling of disconnection
 func (m *Manager) removeClient(client *Client) error {
 	m.Lock()
 	defer m.Unlock()

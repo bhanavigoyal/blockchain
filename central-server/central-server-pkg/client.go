@@ -21,7 +21,7 @@ type Client struct {
 
 func NewClient(conn *websocket.Conn, manager *Manager) *Client {
 	return &Client{
-		ID: uuid.NewString(),
+		ID:         uuid.NewString(),
 		connection: conn,
 		manager:    manager,
 	}
@@ -39,22 +39,25 @@ func (client *Client) sendMessage() {
 	for {
 		select {
 		case message, ok := <-client.egress:
+
 			//ok -> false if egress channel is closed
 			if !ok {
 				if err := client.connection.WriteMessage(websocket.CloseMessage, nil); err != nil {
+
 					// Log that the connection is closed and the reason
-					log.Printf("connection closed for %v: %v ",client.ID, err)
+					log.Printf("connection closed for %v: %v ", client.ID, err)
 				}
+
 				// Return to close the goroutine
 				return
 			}
 			eventJson, err := json.Marshal(message)
 			if err != nil {
-				log.Printf("error marshaling event from %v: %v",client.ID, err)
+				log.Printf("error marshaling event from %v: %v", client.ID, err)
 				return
 			}
 			if err := client.connection.WriteJSON(eventJson); err != nil {
-				log.Printf("error sending message to %v: %v",client.ID, err)
+				log.Printf("error sending message to %v: %v", client.ID, err)
 				return
 			}
 			log.Printf("message sent to : %v", client.ID)
@@ -62,7 +65,7 @@ func (client *Client) sendMessage() {
 			log.Printf("Sending Ping! to %v", client.ID)
 
 			if err := client.connection.WriteControl(websocket.PingMessage, []byte("ping"), time.Now().Add(pkg.PongWait)); err != nil {
-				log.Printf("Error sending Ping to %v: %v",client.ID, err)
+				log.Printf("Error sending Ping to %v: %v", client.ID, err)
 				return
 			}
 		}
@@ -70,7 +73,7 @@ func (client *Client) sendMessage() {
 }
 
 func (client *Client) PongHandler(pongMsg string) error {
-	log.Printf("Pong received from %v: %v",client.ID, pongMsg)
+	log.Printf("Pong received from %v: %v", client.ID, pongMsg)
 
 	return client.connection.SetReadDeadline(time.Now().Add(pkg.PongWait))
 }

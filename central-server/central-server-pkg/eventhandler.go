@@ -38,6 +38,7 @@ func (m *Manager) NewMinedBlockHandler(event pkg.Event, client *Client) error {
 	}
 
 	//add vlidation
+
 	// m.Lock()
 	// defer m.Unlock()
 
@@ -72,8 +73,7 @@ func (m *Manager) NewMinedBlockHandler(event pkg.Event, client *Client) error {
 
 }
 
-
-func (m *Manager) SynchronizeMiner(client *Client){
+func (m *Manager) SynchronizeMiner(client *Client) {
 	m.Lock()
 	defer m.Unlock()
 
@@ -81,4 +81,3 @@ func (m *Manager) SynchronizeMiner(client *Client){
 		log.Printf("Error synchronizing miner: %v", err)
 	}
 }
-
