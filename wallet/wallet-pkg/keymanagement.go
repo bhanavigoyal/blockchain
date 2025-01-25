@@ -5,41 +5,34 @@ import (
 	"fmt"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/tyler-smith/go-bip39"
 )
 
-func CreateWallet() (common.Address, string) {
+func CreateWallet() (common.Address, *ecdsa.PrivateKey) {
 	generatedPrivateKey, err := crypto.GenerateKey()
 	if err != nil {
 		fmt.Printf("error generating private key: %v", err)
 	}
 
-	privateKeyBytes := crypto.FromECDSA(generatedPrivateKey)
-	privateKey := hexutil.Encode(privateKeyBytes[2:])
+	// privateKeyBytes := crypto.FromECDSA(generatedPrivateKey)
+	// privateKey := hexutil.Encode(privateKeyBytes[2:])
 
-	publicKey := generatedPrivateKey.Public()
-	publicKeyEDCSA, ok := publicKey.(*ecdsa.PublicKey)
-	if !ok {
-		fmt.Printf("cannot assert type: publicKey is not of type *ecdsa.PublicKey")
-	}
+	address := GetAddressFromPrivateKey(*generatedPrivateKey)
 
-	address := crypto.PubkeyToAddress(*publicKeyEDCSA)
-
-	return address, privateKey
+	return address, generatedPrivateKey
 
 }
 
-func GenerateMnemonic() (string, string, common.Address, error) {
+func GenerateMnemonic() (string, *ecdsa.PrivateKey, common.Address, error) {
 	entropy, err := bip39.NewEntropy(256)
 	if err != nil {
-		return "", "", common.Address{}, fmt.Errorf("error generating entropy: %v", err)
+		return "", &ecdsa.PrivateKey{}, common.Address{}, fmt.Errorf("error generating entropy: %v", err)
 	}
 
 	mnemonic, err := bip39.NewMnemonic(entropy)
 	if err != nil {
-		return "", "", common.Address{}, fmt.Errorf("error generating mnemonic: %v", err)
+		return "", &ecdsa.PrivateKey{}, common.Address{}, fmt.Errorf("error generating mnemonic: %v", err)
 	}
 
 	privateKey, addresss, err := CreateWalletFromMnemonic(mnemonic)
@@ -52,34 +45,27 @@ func GenerateMnemonic() (string, string, common.Address, error) {
 
 }
 
-func CreateWalletFromMnemonic(mnemonic string) (string, common.Address, error) {
+func CreateWalletFromMnemonic(mnemonic string) (*ecdsa.PrivateKey, common.Address, error) {
 	seed := bip39.NewSeed(mnemonic, "")
 
 	generatedPrivateKey, err := crypto.ToECDSA(seed[:32])
 	if err != nil {
-		return "", common.Address{}, fmt.Errorf("error generating private key from seed: %v", err)
+		return &ecdsa.PrivateKey{}, common.Address{}, fmt.Errorf("error generating private key from seed: %v", err)
 	}
 
-	privateKeyBytes := crypto.FromECDSA(generatedPrivateKey)
-	privateKey := hexutil.Encode(privateKeyBytes[2:])
+	// privateKeyBytes := crypto.FromECDSA(generatedPrivateKey)
+	// privateKey := hexutil.Encode(privateKeyBytes[2:])
 
-	publicKey := generatedPrivateKey.Public()
-	publicKeyEDCSA, ok := publicKey.(*ecdsa.PublicKey)
-	if !ok {
-		return "", common.Address{}, fmt.Errorf("cannot assert type: publicKey is not of type *ecdsa.PublicKey")
-	}
+	address := GetAddressFromPrivateKey(*generatedPrivateKey)
 
-	address := crypto.PubkeyToAddress(*publicKeyEDCSA)
-
-	return privateKey, address, nil
+	return generatedPrivateKey, address, nil
 
 }
 
-func ImportWallet(){
+func ImportWallet() {
 
 }
 
 func ExportPrivateKey() {
 
 }
-
